@@ -1,0 +1,6 @@
+@ReliableWebhook.Api_HostAddress = http://localhost:5190
+
+GET {{ReliableWebhook.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
