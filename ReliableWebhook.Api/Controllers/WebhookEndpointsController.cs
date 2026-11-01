@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ReliableWebhook.Api.Data;
 using ReliableWebhook.Api.Dtos;
 using ReliableWebhook.Api.Models;
 
@@ -8,20 +10,59 @@ namespace ReliableWebhook.Api.Controllers;
 [Route("api/endpoints")]
 public class WebhookEndpointsController : ControllerBase
 {
+    private readonly WebhookDbContext _db;
+
+    public WebhookEndpointsController(WebhookDbContext db)
+    {
+        _db = db;
+    }
+
     [HttpPost]
-    public ActionResult<WebhookEndpointResponse> Create(
+    public async Task<ActionResult<WebhookEndpointResponse>> Create(
         CreateWebhookEndpointRequest request)
     {
-        var endpoint = new WebhookEndpointResponse
+        var endpoint = new WebhookEndpoint
         {
             Id = Guid.NewGuid(),
             Url = request.Url,
+            Secret = request.Secret,
             CreatedAtUtc = DateTime.UtcNow,
             IsActive = true
         };
 
+        _db.WebhookEndpoints.Add(endpoint);
+        await _db.SaveChangesAsync();
+
+        var response = new WebhookEndpointResponse
+        {
+            Id = endpoint.Id,
+            Url = endpoint.Url,
+            CreatedAtUtc = endpoint.CreatedAtUtc,
+            IsActive = endpoint.IsActive
+        };
+
         return Created(
             $"/api/endpoints/{endpoint.Id}",
-            endpoint);
+            response);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<WebhookEndpointResponse>> Get(Guid id)
+    {
+        var endpoint = await _db.WebhookEndpoints
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (endpoint is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new WebhookEndpointResponse
+        {
+            Id = endpoint.Id,
+            Url = endpoint.Url,
+            CreatedAtUtc = endpoint.CreatedAtUtc,
+            IsActive = endpoint.IsActive
+        });
     }
 }
