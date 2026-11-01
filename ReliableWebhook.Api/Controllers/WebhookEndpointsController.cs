@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ReliableWebhook.Api.Data;
+using ReliableWebhook.Infrastructure.Data;
 using ReliableWebhook.Api.Dtos;
-using ReliableWebhook.Api.Models;
+using ReliableWebhook.Infrastructure.Models;
 
 namespace ReliableWebhook.Api.Controllers;
 

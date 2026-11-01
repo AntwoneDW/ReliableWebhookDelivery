@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ReliableWebhook.Api.Data;
+using ReliableWebhook.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

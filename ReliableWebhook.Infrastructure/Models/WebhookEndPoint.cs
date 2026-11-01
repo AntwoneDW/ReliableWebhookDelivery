@@ -1,4 +1,4 @@
-﻿namespace ReliableWebhook.Api.Models;
+﻿namespace ReliableWebhook.Infrastructure.Models;
 
 public class WebhookEndpoint
 {
