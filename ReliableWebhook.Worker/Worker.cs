@@ -41,11 +41,14 @@ public class Worker : BackgroundService
         var db = scope.ServiceProvider
             .GetRequiredService<WebhookDbContext>();
 
+        var now = DateTime.UtcNow;
+
         var webhookEvent = await db.WebhookEvents
             .Where(e =>
-                !db.WebhookDeliveryAttempts.Any(a =>
-                    a.WebhookEventId == e.Id &&
-                    a.Succeeded))
+                e.DeliveryStatus != "Delivered" &&
+                e.DeliveryStatus != "DeadLettered" &&
+                (e.NextAttemptAtUtc == null ||
+                 e.NextAttemptAtUtc <= now))
             .OrderBy(e => e.CreatedAtUtc)
             .FirstOrDefaultAsync(stoppingToken);
 
@@ -72,6 +75,10 @@ public class Worker : BackgroundService
             await db.WebhookDeliveryAttempts.CountAsync(
                 a => a.WebhookEventId == webhookEvent.Id,
                 stoppingToken);
+
+        const int maxAttempts = 3;
+
+        var attemptNumber = previousAttempts + 1;
 
         var attempt = new WebhookDeliveryAttempt
         {
@@ -111,6 +118,30 @@ public class Worker : BackgroundService
         {
             attempt.Succeeded = false;
             attempt.ErrorMessage = ex.Message;
+        }
+
+        if (attempt.Succeeded)
+        {
+            webhookEvent.DeliveryStatus = "Delivered";
+            webhookEvent.DeliveredAtUtc = DateTime.UtcNow;
+            webhookEvent.NextAttemptAtUtc = null;
+        }
+        else if (attemptNumber >= maxAttempts)
+        {
+            webhookEvent.DeliveryStatus = "DeadLettered";
+            webhookEvent.NextAttemptAtUtc = null;
+        }
+        else
+        {
+            webhookEvent.DeliveryStatus = "Retrying";
+
+            var backoffSeconds = Math.Pow(2, attemptNumber);
+            var jitterMilliseconds = Random.Shared.Next(0, 1000);
+
+            webhookEvent.NextAttemptAtUtc =
+                DateTime.UtcNow
+                    .AddSeconds(backoffSeconds)
+                    .AddMilliseconds(jitterMilliseconds);
         }
 
         db.WebhookDeliveryAttempts.Add(attempt);

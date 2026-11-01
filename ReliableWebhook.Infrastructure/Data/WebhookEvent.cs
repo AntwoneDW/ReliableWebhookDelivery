@@ -13,4 +13,10 @@ public class WebhookEvent
     public string IdempotencyKey { get; set; } = string.Empty;
 
     public DateTime CreatedAtUtc { get; set; }
+
+    public string DeliveryStatus { get; set; } = "Pending";
+
+    public DateTime? NextAttemptAtUtc { get; set; }
+
+    public DateTime? DeliveredAtUtc { get; set; }
 }
