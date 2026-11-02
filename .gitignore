@@ -14,6 +14,7 @@ cache.txt
 *.user
 *.userosscache
 *.sln.docstates
+.dockerignore
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

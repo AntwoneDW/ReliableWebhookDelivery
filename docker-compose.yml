@@ -1,0 +1,40 @@
+services:
+
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: reliable-webhook-sql
+  environment:
+    ACCEPT_EULA: "Y"
+    MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - webhook-sql-data:/var/opt/mssql
+
+  api:
+    build:
+      context: .
+      dockerfile: ReliableWebhook.Api/Dockerfile
+    container_name: reliable-webhook-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__WebhookDb: "Server=sql,1433;Database=ReliableWebhookDb;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+    ports:
+      - "5190:8080"
+    depends_on:
+      - sql
+
+  worker:
+    build:
+      context: .
+      dockerfile: ReliableWebhook.Worker/Dockerfile
+    container_name: reliable-webhook-worker
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      ConnectionStrings__WebhookDb: "Server=sql,1433;Database=ReliableWebhookDb;User Id=sa;Password=WebhookDev!2026Sql;TrustServerCertificate=True"
+    depends_on:
+      - sql
+      - api
+
+volumes:
+  webhook-sql-data:

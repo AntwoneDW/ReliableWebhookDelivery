@@ -14,7 +14,13 @@ builder.Services.AddDbContext<WebhookDbContext>(options =>
         builder.Configuration.GetConnectionString("WebhookDb")));
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider
+        .GetRequiredService<WebhookDbContext>();
 
+    db.Database.Migrate();
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
