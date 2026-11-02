@@ -17,6 +17,8 @@ public class TestWebhookReceiverController : ControllerBase
     [HttpPost]
     public IActionResult Receive([FromBody] object payload)
     {
+        Console.WriteLine("CALLBACK RECEVIER... I GOT THE MESSAGE");
+
         _logger.LogInformation(
             "WEBHOOK RECEIVED successfully: {Payload}",
             payload);
@@ -27,6 +29,7 @@ public class TestWebhookReceiverController : ControllerBase
     [HttpPost("fail")]
     public IActionResult Fail([FromBody] object payload)
     {
+        Console.WriteLine("CALLBACK RECEVIER... I GOT THE MESSAGE but fail.");
         _logger.LogWarning(
             "WEBHOOK FAILURE TEST returning HTTP 500: {Payload}",
             payload);

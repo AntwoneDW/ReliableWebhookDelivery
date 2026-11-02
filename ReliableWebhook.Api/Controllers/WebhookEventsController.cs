@@ -87,6 +87,7 @@ public class WebhookEventsController : ControllerBase
     private static WebhookEventResponse ToResponse(
         WebhookEvent webhookEvent)
     {
+        Console.WriteLine("GETTING STATUS FOR webhookEvent.Id: " + webhookEvent.Id);
         return new WebhookEventResponse
         {
             Id = webhookEvent.Id,
@@ -95,5 +96,44 @@ public class WebhookEventsController : ControllerBase
             Payload = webhookEvent.Payload,
             CreatedAtUtc = webhookEvent.CreatedAtUtc
         };
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<WebhookEventStatusResponse>> Get(Guid id)
+    {
+        var webhookEvent = await _db.WebhookEvents
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (webhookEvent is null)
+        {
+            Console.WriteLine("GET: I ain't got that in here: " + id);
+            return NotFound();
+        }
+
+        var attempts = await _db.WebhookDeliveryAttempts
+            .Where(a => a.WebhookEventId == id)
+            .OrderBy(a => a.AttemptNumber)
+            .ToListAsync();
+
+        return Ok(new WebhookEventStatusResponse
+        {
+            Id = webhookEvent.Id,
+            EventType = webhookEvent.EventType,
+            DeliveryStatus = webhookEvent.DeliveryStatus,
+            CreatedAtUtc = webhookEvent.CreatedAtUtc,
+            DeliveredAtUtc = webhookEvent.DeliveredAtUtc,
+            NextAttemptAtUtc = webhookEvent.NextAttemptAtUtc,
+
+            Attempts = attempts.Select(a =>
+                new WebhookDeliveryAttemptResponse
+                {
+                    AttemptNumber = a.AttemptNumber,
+                    ResponseStatusCode = a.ResponseStatusCode,
+                    Succeeded = a.Succeeded,
+                    ErrorMessage = a.ErrorMessage,
+                    AttemptedAtUtc = a.AttemptedAtUtc
+                })
+                .ToList()
+        });
     }
 }

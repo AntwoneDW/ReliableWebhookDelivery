@@ -54,8 +54,10 @@ public class Worker : BackgroundService
 
         if (webhookEvent is null)
         {
+            Console.WriteLine("WORKER:  nothing to do.  ");
             return;
         }
+        Console.WriteLine("WORKER: FINALLY I HAVE WORK");
 
         var endpoint = await db.WebhookEndpoints
             .FirstOrDefaultAsync(
