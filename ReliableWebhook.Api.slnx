@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="ReliableWebhook.Api/ReliableWebhook.Api.csproj" />
   <Project Path="ReliableWebhook.Infrastructure/ReliableWebhook.Infrastructure.csproj" Id="7b992b80-165f-40ee-8720-5a3884e831ab" />
+  <Project Path="ReliableWebhook.Tests/ReliableWebhook.Tests.csproj" Id="877055b8-b9ca-4b8f-a3cd-deb5f51c6353" />
   <Project Path="ReliableWebhook.Worker/ReliableWebhook.Worker.csproj" Id="550918f1-096e-4353-af70-3028cc9505ab" />
 </Solution>
