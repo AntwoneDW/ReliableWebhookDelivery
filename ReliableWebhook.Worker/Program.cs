@@ -5,8 +5,16 @@ using ReliableWebhook.Worker;
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddDbContext<WebhookDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("WebhookDb")));
+ options.UseSqlServer(
+    builder.Configuration.GetConnectionString("WebhookDb"),
+    sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null);
+    }));
+
 
 builder.Services.AddHttpClient();
 

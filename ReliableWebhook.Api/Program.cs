@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ReliableWebhook.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,9 +11,15 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 builder.Services.AddDbContext<WebhookDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("WebhookDb")));
-
+options.UseSqlServer(
+    builder.Configuration.GetConnectionString("WebhookDb"),
+    sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null);
+    }));
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
