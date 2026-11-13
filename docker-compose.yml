@@ -33,6 +33,12 @@ services:
     depends_on:
       sql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
 
   worker:
     build:
@@ -41,12 +47,12 @@ services:
     container_name: reliable-webhook-worker
     environment:
       DOTNET_ENVIRONMENT: Development
-      ConnectionStrings__WebhookDb: "Server=sql,1433;Database=ReliableWebhookDb;User Id=sa;Password=WebhookDev!2026Sql;TrustServerCertificate=True"
+      ConnectionStrings__WebhookDb: "Server=sql,1433;Database=ReliableWebhookDb;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
     depends_on:
       sql:
         condition: service_healthy
       api:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   webhook-sql-data:
