@@ -8,6 +8,8 @@ RUN dotnet restore ReliableWebhook.Worker/ReliableWebhook.Worker.csproj
 
 COPY . .
 
+RUN dotnet restore ReliableWebhook.Worker/ReliableWebhook.Worker.csproj --force
+
 RUN dotnet publish ReliableWebhook.Worker/ReliableWebhook.Worker.csproj \
     -c Release \
     -o /app/publish \

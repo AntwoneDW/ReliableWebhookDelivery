@@ -24,7 +24,6 @@ services:
     build:
       context: .
       dockerfile: ReliableWebhook.Api/Dockerfile
-    container_name: reliable-webhook-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__WebhookDb: "Server=sql,1433;Database=ReliableWebhookDb;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
@@ -44,7 +43,6 @@ services:
     build:
       context: .
       dockerfile: ReliableWebhook.Worker/Dockerfile
-    container_name: reliable-webhook-worker
     environment:
       DOTNET_ENVIRONMENT: Development
       ConnectionStrings__WebhookDb: "Server=sql,1433;Database=ReliableWebhookDb;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
