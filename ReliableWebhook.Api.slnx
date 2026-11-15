@@ -1,6 +1,11 @@
 <Solution>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path="ci.yml" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".env" />
+    <File Path="script.bat" />
   </Folder>
   <Project Path="ReliableWebhook.Api/ReliableWebhook.Api.csproj" />
   <Project Path="ReliableWebhook.Infrastructure/ReliableWebhook.Infrastructure.csproj" Id="7b992b80-165f-40ee-8720-5a3884e831ab" />

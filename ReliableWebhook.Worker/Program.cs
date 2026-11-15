@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using ReliableWebhook.Infrastructure.Data;
 using ReliableWebhook.Worker;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -19,6 +22,22 @@ builder.Services.AddDbContext<WebhookDbContext>(options =>
 builder.Services.AddHttpClient();
 
 builder.Services.AddHostedService<Worker>();
+
+const string serviceName = "ReliableWebhook.Worker";
+
+builder.Services
+    .AddOpenTelemetry()
+    .ConfigureResource(resource =>
+        resource.AddService(serviceName))
+    .WithTracing(tracing =>
+        tracing
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter())
+    .WithMetrics(metrics =>
+        metrics
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddConsoleExporter());
 
 var host = builder.Build();
 

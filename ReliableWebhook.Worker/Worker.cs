@@ -54,10 +54,12 @@ public class Worker : BackgroundService
 
         if (webhookEvent is null)
         {
-            Console.WriteLine("WORKER:  nothing to do.  ");
+            _logger.LogDebug("No pending webhook events found");
             return;
         }
-        Console.WriteLine("WORKER: FINALLY I HAVE WORK");
+        _logger.LogInformation(
+    "Processing webhook event {EventId}",
+    webhookEvent.Id);
 
         var endpoint = await db.WebhookEndpoints
             .FirstOrDefaultAsync(
