@@ -5,6 +5,8 @@
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".env" />
+    <File Path="cache.md" />
+    <File Path="cache.txt" />
     <File Path="script.bat" />
   </Folder>
   <Project Path="ReliableWebhook.Api/ReliableWebhook.Api.csproj" />

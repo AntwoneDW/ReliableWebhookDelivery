@@ -87,7 +87,6 @@ public class WebhookEventsController : ControllerBase
     private static WebhookEventResponse ToResponse(
         WebhookEvent webhookEvent)
     {
-        Console.WriteLine("GETTING STATUS FOR webhookEvent.Id: " + webhookEvent.Id);
         return new WebhookEventResponse
         {
             Id = webhookEvent.Id,
@@ -106,7 +105,6 @@ public class WebhookEventsController : ControllerBase
 
         if (webhookEvent is null)
         {
-            Console.WriteLine("GET: I ain't got that in here: " + id);
             return NotFound();
         }
 

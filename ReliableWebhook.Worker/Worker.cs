@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ReliableWebhook.Infrastructure.Data;
 using ReliableWebhook.Infrastructure.Models;
+using ReliableWebhook.Infrastructure.Telemetry;
 
 namespace ReliableWebhook.Worker;
 
@@ -10,14 +11,18 @@ public class Worker : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory _httpClientFactory;
 
+    private readonly WebhookMetrics _metrics;
+
     public Worker(
         ILogger<Worker> logger,
         IServiceScopeFactory scopeFactory,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        WebhookMetrics metrics)
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
         _httpClientFactory = httpClientFactory;
+        _metrics = metrics;
     }
 
     protected override async Task ExecuteAsync(
@@ -83,6 +88,13 @@ public class Worker : BackgroundService
         const int maxAttempts = 3;
 
         var attemptNumber = previousAttempts + 1;
+        
+        _logger.LogInformation(
+            "Processing webhook event {EventId} for endpoint {EndpointId}. Attempt {AttemptNumber}",
+            webhookEvent.Id,
+            webhookEvent.WebhookEndpointId,
+            attemptNumber);
+        _metrics.RecordAttempt();
 
         var attempt = new WebhookDeliveryAttempt
         {
@@ -116,7 +128,23 @@ public class Worker : BackgroundService
             {
                 attempt.ErrorMessage =
                     $"HTTP {(int)response.StatusCode}";
+                _metrics.RecordFailure();
+                _logger.LogInformation(
+                    "Webhook event {EventId} failed on attempt {AttemptNumber} with HTTP {StatusCode}",
+                    webhookEvent.Id,
+                    attemptNumber,
+                    (int)response.StatusCode);
             }
+            else
+            {
+                _logger.LogInformation(
+                    "Webhook event {EventId} delivered successfully on attempt {AttemptNumber} with HTTP {StatusCode}",
+                    webhookEvent.Id,
+                    attemptNumber,
+                    (int)response.StatusCode);
+                _metrics.RecordSuccess();
+            }
+
         }
         catch (Exception ex)
         {
@@ -134,10 +162,19 @@ public class Worker : BackgroundService
         {
             webhookEvent.DeliveryStatus = "DeadLettered";
             webhookEvent.NextAttemptAtUtc = null;
+            _logger.LogError(
+                "Webhook event {EventId} moved to dead letter after {AttemptNumber} attempts",
+                webhookEvent.Id,
+                attemptNumber);
         }
         else
         {
             webhookEvent.DeliveryStatus = "Retrying";
+            _logger.LogWarning(
+                "Webhook event {EventId} failed on attempt {AttemptNumber}. Next attempt scheduled for {NextAttemptAtUtc}",
+                webhookEvent.Id,
+                attemptNumber,
+                webhookEvent.NextAttemptAtUtc);
 
             var backoffSeconds = Math.Pow(2, attemptNumber);
             var jitterMilliseconds = Random.Shared.Next(0, 1000);

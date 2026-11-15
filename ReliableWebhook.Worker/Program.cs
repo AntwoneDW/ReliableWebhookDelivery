@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using ReliableWebhook.Infrastructure.Data;
-using ReliableWebhook.Worker;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using ReliableWebhook.Infrastructure.Data;
+using ReliableWebhook.Infrastructure.Models;
+using ReliableWebhook.Infrastructure.Telemetry;
+using ReliableWebhook.Worker;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -22,6 +24,7 @@ builder.Services.AddDbContext<WebhookDbContext>(options =>
 builder.Services.AddHttpClient();
 
 builder.Services.AddHostedService<Worker>();
+builder.Services.AddSingleton<WebhookMetrics>();
 
 const string serviceName = "ReliableWebhook.Worker";
 
@@ -35,17 +38,18 @@ builder.Services
             .AddConsoleExporter())
     .WithMetrics(metrics =>
         metrics
+            .AddMeter("ReliableWebhook")
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
             .AddConsoleExporter());
 
 var host = builder.Build();
 
-Console.WriteLine(
-    $"Environment: {builder.Environment.EnvironmentName}");
+var _logger = host.Services.GetRequiredService<ILogger<Program>>();
 
-Console.WriteLine(
-    $"Connection string exists: " +
+_logger.LogWarning($"Environment: {builder.Environment.EnvironmentName}");
+
+_logger.LogWarning($"Connection string exists: " +
     $"{builder.Configuration.GetConnectionString("WebhookDb") is not null}");
 
 
