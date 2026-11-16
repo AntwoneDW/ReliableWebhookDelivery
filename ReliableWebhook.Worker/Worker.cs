@@ -2,6 +2,7 @@
 using ReliableWebhook.Infrastructure.Data;
 using ReliableWebhook.Infrastructure.Models;
 using ReliableWebhook.Infrastructure.Telemetry;
+using System.Diagnostics;
 
 namespace ReliableWebhook.Worker;
 
@@ -94,7 +95,9 @@ public class Worker : BackgroundService
             webhookEvent.Id,
             webhookEvent.WebhookEndpointId,
             attemptNumber);
+
         _metrics.RecordAttempt();
+        var stopwatch = Stopwatch.StartNew();
 
         var attempt = new WebhookDeliveryAttempt
         {
@@ -124,6 +127,9 @@ public class Worker : BackgroundService
             attempt.Succeeded =
                 response.IsSuccessStatusCode;
 
+            stopwatch.Stop();
+            _metrics.RecordDeliveryDuration(stopwatch.Elapsed.TotalMilliseconds);
+
             if (!attempt.Succeeded)
             {
                 attempt.ErrorMessage =
@@ -135,16 +141,6 @@ public class Worker : BackgroundService
                     attemptNumber,
                     (int)response.StatusCode);
             }
-            else
-            {
-                _logger.LogInformation(
-                    "Webhook event {EventId} delivered successfully on attempt {AttemptNumber} with HTTP {StatusCode}",
-                    webhookEvent.Id,
-                    attemptNumber,
-                    (int)response.StatusCode);
-                _metrics.RecordSuccess();
-            }
-
         }
         catch (Exception ex)
         {
@@ -156,7 +152,21 @@ public class Worker : BackgroundService
         {
             webhookEvent.DeliveryStatus = "Delivered";
             webhookEvent.DeliveredAtUtc = DateTime.UtcNow;
+            var totalDeliveryDuration =
+                (webhookEvent.DeliveredAtUtc.Value - webhookEvent.CreatedAtUtc)
+                .TotalMilliseconds;
+
+            _metrics.RecordTotalDeliveryDuration(totalDeliveryDuration);
             webhookEvent.NextAttemptAtUtc = null;
+            _metrics.RecordSuccess();
+
+            _logger.LogInformation(
+    "Webhook event {EventId} delivered successfully on attempt {AttemptNumber}. " +
+    "Attempt duration {AttemptDurationMs:F2} ms; total delivery duration {TotalDurationMs:F2} ms",
+    webhookEvent.Id,
+    attemptNumber,
+    stopwatch.Elapsed.TotalMilliseconds,
+    totalDeliveryDuration);
         }
         else if (attemptNumber >= maxAttempts)
         {

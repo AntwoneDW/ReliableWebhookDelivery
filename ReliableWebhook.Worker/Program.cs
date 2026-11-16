@@ -35,13 +35,22 @@ builder.Services
     .WithTracing(tracing =>
         tracing
             .AddHttpClientInstrumentation()
-            .AddConsoleExporter())
+            //.AddConsoleExporter()
+            .AddOtlpExporter()
+            )
     .WithMetrics(metrics =>
         metrics
             .AddMeter("ReliableWebhook")
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
-            .AddConsoleExporter());
+/*            .AddConsoleExporter((exporterOptions, metricReaderOptions) =>
+            {
+                metricReaderOptions
+                    .PeriodicExportingMetricReaderOptions
+                    .ExportIntervalMilliseconds = 3000;
+            })
+*/            .AddOtlpExporter()
+            );
 
 var host = builder.Build();
 
