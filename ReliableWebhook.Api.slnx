@@ -3,15 +3,13 @@
   <Folder Name="/.github/workflows/">
     <File Path="ci.yml" />
   </Folder>
+
   <Folder Name="/Solution Items/">
-    <File Path=".env" />
-    <File Path="cache.md" />
-    <File Path="cache.txt" />
     <File Path="otel-collector-config.yaml" />
-    <File Path="script.bat" />
   </Folder>
-  <Project Path="../../../../../../../../workspace/ReliableWebhookDelivery/ReliableWebhook.Api/ReliableWebhook.Api.csproj" />
-  <Project Path="../../../../../../../../workspace/ReliableWebhookDelivery/ReliableWebhook.Infrastructure/ReliableWebhook.Infrastructure.csproj" Id="7b992b80-165f-40ee-8720-5a3884e831ab" />
-  <Project Path="../../../../../../../../workspace/ReliableWebhookDelivery/ReliableWebhook.Tests/ReliableWebhook.Tests.csproj" Id="877055b8-b9ca-4b8f-a3cd-deb5f51c6353" />
-  <Project Path="../../../../../../../../workspace/ReliableWebhookDelivery/ReliableWebhook.Worker/ReliableWebhook.Worker.csproj" Id="550918f1-096e-4353-af70-3028cc9505ab" />
+
+  <Project Path="ReliableWebhook.Api/ReliableWebhook.Api.csproj" />
+  <Project Path="ReliableWebhook.Infrastructure/ReliableWebhook.Infrastructure.csproj" />
+  <Project Path="ReliableWebhook.Tests/ReliableWebhook.Tests.csproj" />
+  <Project Path="ReliableWebhook.Worker/ReliableWebhook.Worker.csproj" />
 </Solution>
